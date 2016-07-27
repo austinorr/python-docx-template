@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
 Created : 2015-03-12
-
 @author: Eric Lapouyade
 '''
 
@@ -13,6 +12,13 @@ from jinja2 import Template
 from cgi import escape
 import re
 import six
+
+#### Austin Orr Geosyntec 7/26/2016
+PY3K = False
+import sys
+if sys.version_info[:2][0] == (3):
+    PY3K = True
+#### /Austin Orr Geosyntec 7/26/2016
 
 class DocxTemplate(object):
     """ Class for managing docx files as they were jinja2 templates """
@@ -98,8 +104,15 @@ class DocxTemplate(object):
 
     def build_headers_footers_xml(self,context, uri,jinja_env=None):
         for relKey, xml in self.get_headers_footers_xml(uri):
+            ## Edited for python3.x compatibility Austin Orr Geosyntec 2016
+            if PY3K:
+                xml = xml.decode('utf-8')
             encoding = self.get_headers_footers_encoding(xml)
-            xml = self.patch_xml(xml).decode(encoding)
+            if PY3K:
+                xml = self.patch_xml(xml)
+            else:
+                xml = self.patch_xml(xml).decode(encoding)
+            ## /Edited for python3.x compatibility Austin Orr Geosyntec 2016
             xml = self.render_xml(xml, context, jinja_env)
             yield relKey, xml.encode(encoding)
 
@@ -148,7 +161,6 @@ class Subdoc(object):
 
 class RichText(object):
     """ class to generate Rich Text when using templates variables
-
     This is much faster than using Subdoc class, but this only for texts INSIDE an existing paragraph.
     """
     def __init__(self, text=None, **text_prop):
@@ -208,4 +220,3 @@ class RichText(object):
         return self.xml
 
 R = RichText
-
